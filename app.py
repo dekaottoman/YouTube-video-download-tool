@@ -1,81 +1,84 @@
 import tkinter as tk
-import os
-from tkinter import Button, Label, font
-from pytube import YouTube
+from tkinter import filedialog
+from tkinter import ttk
+from yt import download_mp4, download_mp3, get_info
+
 
 root = tk.Tk()
-root.maxsize(700,400)
-root.minsize(700,400)
-root.title('Youtube Video Download Tool')
+root.minsize(300,486)
+root.maxsize(300,486)
+root.title("YT Video Download")
+icon = tk.PhotoImage("icon.ico")
+root.iconbitmap(icon)
 
-#We get the path to users "Downloads" folder
-if os.name == "nt":
-    downloads = f"{os.getenv('USERPROFILE')}\\Downloads"
-else:
-    downloads = f"{os.getenv('HOME')}/Downloads"
+def pop_up(msg:str):
+    win = tk.Toplevel()
+    win.wm_title("For you!")
+    win.maxsize(243,150)
+    win.minsize(243,150)
 
-#We get the video URL and its title
-def get_video():
-    url = url_input.get()
-    info_label1 = tk.Label(info_frame, text= YouTube(url).title, font=15, bg="#dff9fb")
-    info_label1.place(relx=0.036, rely=0.4)
-    print(url)
+    l = tk.Label(win, text=msg)
+    l.place(relwidth=1, relheight=0.2, rely=0.25, relx=0)
 
-#We use this function to download the High Res. version of the video
-def downh():
-    url = url_input.get()
-    YouTube(url).streams.get_highest_resolution().download(downloads)
-    down_label = tk.Label(user_frame, text="Download Done!", width=27, font=25, bg="#22a6b3")
-    down_label.place(relx=0.036, rely=0.05)
+    b = ttk.Button(win, text="Okay", command=win.destroy)
+    b.place(relwidth=0.5, relheight=0.2, rely=0.5, relx=0.25)
 
-#We use this function to download the Low Res. version of the video
-def downl():
-    url = url_input.get()
-    YouTube(url).streams.get_lowest_resolution().download(downloads)
-    down_label = tk.Label(user_frame, text="Download Done!", width=27, font=25, bg="#22a6b3")
-    down_label.place(relx=0.036, rely=0.05)
+def download_vid():
+    try:
+        url = url_input.get()
+        if len(url) > 0:
+            download_mp4(url)
+            pop_up("Download Complete.")
+        else:
+            pop_up("Please enter URL.")
+    except:
+        pop_up("Please check your URL.")
 
-#We use this function to download the Audio only version of the video
-def downa():
-    url = url_input.get()
-    YouTube(url).streams.get_audio_only().download(downloads)
-    down_label = tk.Label(user_frame, text="Download Done!", width=27, font=25, bg="#22a6b3")
-    down_label.place(relx=0.036, rely=0.05)
+def download_audio():
+    pop_up("Not implemented yet.")
 
-#Info frame is for the part to display the info
-canvas = tk.Canvas(root, height=400, width=700, bg="white")
+def info():
+    try:
+        url = url_input.get()
+        if len(url) > 0:
+            info = get_info(url)
+            win = tk.Toplevel()
+            win.wm_title("Video Info")
+            win.maxsize(243,150)
+            win.minsize(243,150)
+
+            l = tk.Label(win, text=str(info[0]))
+            l.place(relwidth=1, relheight=0.12, rely=0.15, relx=0)
+
+            l = tk.Label(win, text="View Count : " + str(info[2]))
+            l.place(relwidth=1, relheight=0.12, rely=0.3, relx=0)
+
+            l = tk.Label(win, text="Length : " + str(info[1]))
+            l.place(relwidth=1, relheight=0.12, rely=0.45, relx=0)
+
+            b = ttk.Button(win, text="Okay", command=win.destroy)
+            b.place(relwidth=0.5, relheight=0.2, rely=0.65, relx=0.25)
+        else:
+            pop_up("Please enter URL.")
+    except:
+        pop_up("Please check your URL.")
+
+canvas = tk.Canvas(root, width=300, height=486, bg="#f0f0f0")
 canvas.pack()
 
-info_frame = tk.Frame(root, bg="#dff9fb")
-info_frame.place(relheight=0.4, relwidth=1, relx=0, rely=0)
+url_input = ttk.Entry(root)
+canvas.create_window(150,180, window=url_input,width=250,height=35)
 
-img = tk.PhotoImage(file="yt_logo.png")
-yt_label = tk.Label(info_frame, image=img)
-yt_label.place(relheight=1, relwidth=0.375 ,relx=0.625, rely=0)
+download_btn = ttk.Button(root, text="Download Video", command=download_vid)
+download_btn.place(relwidth=0.7,relheight=0.12,relx=0.15,rely=0.45)
 
-#User frame is the frame for the part of the application the user interacts with
-user_frame = tk.Frame(root, bg="#22a6b3")
-user_frame.place(relheight=0.4, relwidth=1, relx=0, rely=0.4)
+download_btn = ttk.Button(root, text="Download Audio", command=download_audio)
+download_btn.place(relwidth=0.7,relheight=0.12,relx=0.15,rely=0.6)
 
-url_input = tk.Entry(root)
-canvas.create_window(150,220,window=url_input, width=250, height=25)
+download_btn = ttk.Button(root, text="Display Info", command=info)
+download_btn.place(relwidth=0.7,relheight=0.12,relx=0.15,rely=0.75)
 
-down_label = tk.Label(user_frame, text="Enter a URL from YouTube", width=27, font=25, bg="#22a6b3")
-down_label.place(relx=0.036, rely=0.05)
-
-vidget_btn = Button(user_frame, text="Click Me !!!" , width=27, font=20, bg="#6ab04c" , fg="white", command=get_video)
-vidget_btn.place(relheight=0.3 ,relx=0.036, rely=0.55)
-
-downh_btn = Button(user_frame, text="High Res. Download" , width=27, font=20, bg="#6ab04c", fg="white", command=downh)
-downh_btn.place(relx=0.60, rely=0.1)
-
-downl_btn = Button(user_frame, text="Low Res. Download" , width=27, font=20, bg="#6ab04c", fg="white", command=downl)
-downl_btn.place(relx=0.6, rely=0.35)
-
-downa_btn = Button(user_frame, text="Audio only Download" , width=27, font=20, bg="#6ab04c", fg="white", command=downa)
-downa_btn.place(relx=0.6, rely=0.6)
-
-dekaottoman = tk.Label(root,text="By dekaottoman", font=20, bg="black", fg="white")
-dekaottoman.place(relheight=0.2 ,relwidth=1, rely=0.8,relx=0)
+attr_label = tk.Label(root, text="by dekaottoman", bg="#576574", fg="#ffffff")
+attr_label.place(relwidth=1, relheight=0.07, relx=0,rely=0.93)
 
 root.mainloop()
